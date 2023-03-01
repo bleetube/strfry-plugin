@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=65.6.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bleetube-strfry-plugin"
+version = "0.0.2"
+description = "Strfry plugin for spam filtering and metrics"
+readme = "README.md"
+authors = [{ name = "blee", email = "blee@bitcoiner.social" }]
+license = { file = "LICENSE" }
+keywords = ["nostr", "strfry"]
+dependencies = [
+    'build>=0.8.0',
+    'prometheus_client>=0.16.0',
+]
+requires-python = ">=3.10.0"
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: System :: Monitoring",
+]
+[project.urls]
+Homepage = "https://github.com/bleetube/strfry-plugin"

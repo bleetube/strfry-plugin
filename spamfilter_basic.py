@@ -2,7 +2,6 @@
 
 import json, logging, re, sys
 from os import getcwd
-import collector
 
 log_file = f"{getcwd()}/plugin.log"
 
@@ -34,10 +33,6 @@ def event_flow_control(id: str, action = 'accept', message: str = None):
     # Ensure stdout is line buffered for strfry.
     print(response, flush=True)
 
-strfry_metrics = collector.strfryCollector()
-collector.start_http_server(collector.METRICS_PORT, collector.METRICS_BIND)
-collector.REGISTRY.register(strfry_metrics)
-
 for line in sys.stdin:
     logging.debug(line)
     try:
@@ -64,18 +59,21 @@ for line in sys.stdin:
     event_kind = req.get('event').get('kind') 
     event_content = req.get('event').get('content')
     if event_kind == 1:
+        # When printing messages, we will stop printing at the first line break.
+        line_break_index = event_content.find("\n")
+        # Events with kind 1 are short notes.
         if re.search(url_pattern, event_content):
             event_flow_control(req['event']['id'], 'reject', 'Spam filter: URLs are not allowed in notes on this free relay.')
-            strfry_metrics.spam_events['url'] += 1
+            logging.debug(f"Rejected note content: {event_content[:line_break_index][:25]}")
         elif re.search(bolt11_pattern, event_content):
             event_flow_control(req['event']['id'], 'reject', 'Spam filter: Bolt11 invoices are not allowed in notes on this free relay.')
-            strfry_metrics.spam_events['bolt11'] += 1
+            logging.debug(f"Rejected note content: {event_content[:line_break_index][:25]}")
         else:
             event_flow_control(req['event']['id'])
-            strfry_metrics.event_kinds[1] += 1
+            logging.debug(f"Accepted note content: {event_content[:line_break_index][:25]}")
     elif event_kind == 4:
         event_flow_control(req['event']['id'], 'reject', 'Spam filter: DMs and chat groups are not allowed on this free relay.')
-        strfry_metrics.spam_events['chat'] += 1
+        logging.debug(f"Rejected kind 4 (chat).")
     else:
         # Accept all other events.
         event_flow_control(req['event']['id'])

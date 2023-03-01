@@ -2,6 +2,8 @@
 
 This is a spam filter that I am trying out. It is intended for use on a free relay where the spam is very, very bad.
 
+I also slapped on some metric collection for a monitoring stack like Prometheus.
+
 ## Spam policies
 
 * All event kind 4 direct messages are rejected.
@@ -32,4 +34,26 @@ Define these optional variables in `.env`:
 ```ini
 STRFRY_METRICS_PORT=9101
 STRFRY_METRICS_BIND=127.0.0.1
+```
+
+You can test its working after your start strfry with the filter configured with `curl localhost:9101`
+
+```prometheus
+# HELP rejected_note_url_spam Rejected event kind 1 notes with a url
+# TYPE rejected_note_url_spam gauge
+rejected_note_url_spam 877.0
+# HELP rejected_note_bolt11_spam Rejected event kind 1 notes with a bolt11 invoice
+# TYPE rejected_note_bolt11_spam gauge
+rejected_note_bolt11_spam 23.0
+# HELP rejected_chat_spam Rejected event kind 4 chats and direct messages
+# TYPE rejected_chat_spam gauge
+rejected_chat_spam 1.0
+# HELP events Count of events by kind
+# TYPE events gauge
+events{kind="1"} 33.0
+events{kind="7"} 83.0
+events{kind="6"} 10.0
+events{kind="1984"} 0.0
+events{kind="9735"} 3.0
+events{kind="other"} 198.0
 ```

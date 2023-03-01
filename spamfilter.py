@@ -63,6 +63,7 @@ for line in sys.stdin:
 
     event_kind = req.get('event').get('kind') 
     event_content = req.get('event').get('content')
+    # Block notes with URLs and bolt11 invoices.
     if event_kind == 1:
         if re.search(url_pattern, event_content):
             event_flow_control(req['event']['id'], 'reject', 'Spam filter: URLs are not allowed in notes on this free relay.')
@@ -71,11 +72,21 @@ for line in sys.stdin:
             event_flow_control(req['event']['id'], 'reject', 'Spam filter: Bolt11 invoices are not allowed in notes on this free relay.')
             strfry_metrics.spam_events['bolt11'] += 1
         else:
-            event_flow_control(req['event']['id'])
+            event_flow_control(req['event']['id'], 'accept')
             strfry_metrics.event_kinds[1] += 1
+    # Block chat and direct messages.
     elif event_kind == 4:
         event_flow_control(req['event']['id'], 'reject', 'Spam filter: DMs and chat groups are not allowed on this free relay.')
         strfry_metrics.spam_events['chat'] += 1
+    # Accept all other events.
     else:
-        # Accept all other events.
-        event_flow_control(req['event']['id'])
+        # Count metrics for accepted events.
+        # Could do a for loop here but guessing that's slower.
+        if event_kind == 7 or \
+            event_kind == 6 or \
+            event_kind == 1984 or \
+            event_kind == 9735:
+            strfry_metrics.event_kinds[event_kind] += 1
+        else:
+            strfry_metrics.event_kinds['other'] += 1
+        event_flow_control(req['event']['id'], 'accept')

@@ -21,6 +21,7 @@ class strfryCollector(object):
             6:0, # Reposts (nip-18)
             1984:0, # Reporting (nip-56)
             9735:0, # Zap (nip-57)
+            30000:0, # Replaceable (nip-33)
             'other':0,
         }
         self.spam_events = {'url':0, 'bolt11':0, 'chat':0}

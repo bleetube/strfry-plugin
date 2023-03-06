@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/strfry/.venv/bin/python
 
 import json, logging, re, sys
 from os import getcwd
@@ -34,7 +34,7 @@ def event_flow_control(req: dict, action = 'accept', message: str = None):
     response = json.dumps(response, separators=(',', ':'))
     # Ensure stdout is line buffered for strfry.
     print(response, flush=True)
-    logging.info(f"{action}ed event_kind: {req['event']['kind']} from {req['sourceInfo']}, {req['event']['pubkey']}")
+    logging.info(f"{action}ed event_kind: {req['event']['kind']} from {req['sourceInfo']} {req['event']['pubkey']}")
 
 strfry_metrics = collector.strfryCollector()
 collector.start_http_server(collector.METRICS_PORT, collector.METRICS_BIND)
@@ -66,8 +66,8 @@ for line in sys.stdin:
 
     event_kind = req.get('event').get('kind') 
     event_content = req.get('event').get('content')
-    # Block notes with URLs and bolt11 invoices.
-    if event_kind == 1:
+    # Block notes and channel messages with URLs and bolt11 invoices.
+    if event_kind == 1 or event_kind == 42:
         if re.search(url_pattern, event_content, re.IGNORECASE):
             event_flow_control(req, 'reject', 'Spam filter: URLs are not allowed in notes on this free relay.')
             strfry_metrics.spam_events['url'] += 1
@@ -78,7 +78,7 @@ for line in sys.stdin:
             event_flow_control(req, 'accept')
             strfry_metrics.event_kinds[1] += 1
     # Block chat and direct messages.
-    elif event_kind == 4:
+    elif event_kind == 4 or event_kind == 42:
         event_flow_control(req, 'reject', 'Spam filter: DMs and chat groups are not allowed on this free relay.')
         strfry_metrics.spam_events['chat'] += 1
     # Accept all other events.
@@ -87,8 +87,8 @@ for line in sys.stdin:
         # Could do a for loop here but guessing that's slower.
         if event_kind == 7 or \
             event_kind == 6 or \
-            event_kind == 1984 or \
-            event_kind == 9735:
+            event_kind == 9735 or \
+            event_kind == 30000:
             strfry_metrics.event_kinds[event_kind] += 1
         else:
             strfry_metrics.event_kinds['other'] += 1

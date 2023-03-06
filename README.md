@@ -57,3 +57,11 @@ events{kind="1984"} 0.0
 events{kind="9735"} 3.0
 events{kind="other"} 198.0
 ```
+
+### top talker
+
+You can identify top talkers with:
+
+```bash
+tail -40000 plugin.log | awk '{print $8}' | cut -d, -f1 | sort | uniq -c | sort -nr | head
+```

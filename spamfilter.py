@@ -3,6 +3,7 @@
 import json, logging, re, sys
 from os import getcwd
 import collector
+from pprint import pprint
 
 log_file = f"{getcwd()}/plugin.log"
 
@@ -16,13 +17,14 @@ ban_list = [
     None,
 #   '83768054ef906ca493dcf703dd93b73fa71054ec80f83e71e2eb68eb5139e1d6',
 ]
-url_pattern = re.compile(r'http[s]?://')
+#url_pattern = re.compile(r'http[s]?://')
+url_pattern = r'http[s]?://'
 # https://bitcoin.stackexchange.com/a/107962/101
-bolt11_pattern = re.compile(r'lnbc[A-Za-z0-9]{190}')
+bolt11_pattern = r'lnbc[A-Za-z0-9]{190}'
 
-def event_flow_control(id: str, action = 'accept', message: str = None):
+def event_flow_control(req: dict, action = 'accept', message: str = None):
     response = {
-        'id': id,
+        'id': req['event']['id'],
         'action': action
     }
     if message:
@@ -30,14 +32,15 @@ def event_flow_control(id: str, action = 'accept', message: str = None):
 
     # Dump the json to a string without whitespace.
     response = json.dumps(response, separators=(',', ':'))
-    logging.info(response)
     # Ensure stdout is line buffered for strfry.
     print(response, flush=True)
+    logging.info(f"{action}ed event_kind: {req['event']['kind']} from {req['sourceInfo']}, {req['event']['pubkey']}")
 
 strfry_metrics = collector.strfryCollector()
 collector.start_http_server(collector.METRICS_PORT, collector.METRICS_BIND)
 collector.REGISTRY.register(strfry_metrics)
 
+other_event_kinds = {'periodic_report': 0}
 for line in sys.stdin:
     logging.debug(line)
     try:
@@ -58,25 +61,25 @@ for line in sys.stdin:
 
     # Block banned pubkeys.
     if req['event']['pubkey'] in ban_list:
-        event_flow_control(req['event']['id'], 'reject', 'blocked: banned')
+        event_flow_control(req['event'], 'reject', 'blocked: banned')
         continue
 
     event_kind = req.get('event').get('kind') 
     event_content = req.get('event').get('content')
     # Block notes with URLs and bolt11 invoices.
     if event_kind == 1:
-        if re.search(url_pattern, event_content):
-            event_flow_control(req['event']['id'], 'reject', 'Spam filter: URLs are not allowed in notes on this free relay.')
+        if re.search(url_pattern, event_content, re.IGNORECASE):
+            event_flow_control(req, 'reject', 'Spam filter: URLs are not allowed in notes on this free relay.')
             strfry_metrics.spam_events['url'] += 1
-        elif re.search(bolt11_pattern, event_content):
-            event_flow_control(req['event']['id'], 'reject', 'Spam filter: Bolt11 invoices are not allowed in notes on this free relay.')
+        elif re.search(bolt11_pattern, event_content, re.IGNORECASE):
+            event_flow_control(req, 'reject', 'Spam filter: Bolt11 invoices are not allowed in notes on this free relay.')
             strfry_metrics.spam_events['bolt11'] += 1
         else:
-            event_flow_control(req['event']['id'], 'accept')
+            event_flow_control(req, 'accept')
             strfry_metrics.event_kinds[1] += 1
     # Block chat and direct messages.
     elif event_kind == 4:
-        event_flow_control(req['event']['id'], 'reject', 'Spam filter: DMs and chat groups are not allowed on this free relay.')
+        event_flow_control(req, 'reject', 'Spam filter: DMs and chat groups are not allowed on this free relay.')
         strfry_metrics.spam_events['chat'] += 1
     # Accept all other events.
     else:
@@ -89,4 +92,18 @@ for line in sys.stdin:
             strfry_metrics.event_kinds[event_kind] += 1
         else:
             strfry_metrics.event_kinds['other'] += 1
-        event_flow_control(req['event']['id'], 'accept')
+            # Count other event kinds for internal visibility.
+            if other_event_kinds.get(event_kind):
+                other_event_kinds[event_kind] += 1
+            else:
+                other_event_kinds[event_kind] = 1
+#           # Periodically log a count of the other event kinds.
+#           if other_event_kinds['periodic_report'] > 10:
+#               other_events = dict(sorted(other_event_kinds.items(), key=lambda x: x[1], reverse=True))
+#               logging.info(f"Top 5 other_event_kinds: {other_events[:5]}")
+#               other_event_kinds['periodic_report'] = 1
+#           else:
+#               other_event_kinds['periodic_report'] += 1
+#       other_events = dict(sorted(other_event_kinds.items(), key=lambda x: x[1], reverse=True))
+#       logging.info(other_events[:5])
+        event_flow_control(req, 'accept')

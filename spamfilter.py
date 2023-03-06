@@ -64,10 +64,10 @@ for line in sys.stdin:
         event_flow_control(req['event'], 'reject', 'blocked: banned')
         continue
 
-    event_kind = req.get('event').get('kind') 
-    event_content = req.get('event').get('content')
+    event_kind = req.get('event').get('kind')  or ""
     # Block notes and channel messages with URLs and bolt11 invoices.
     if event_kind == 1 or event_kind == 42:
+        event_content = req.get('event').get('content') or ""
         if re.search(url_pattern, event_content, re.IGNORECASE):
             event_flow_control(req, 'reject', 'Spam filter: URLs are not allowed in notes on this free relay.')
             strfry_metrics.spam_events['url'] += 1

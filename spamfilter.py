@@ -19,8 +19,10 @@ ban_list = [
 ]
 #url_pattern = re.compile(r'http[s]?://')
 url_pattern = r'http[s]?://'
+vmess_pattern = r'vmess://'
 # https://bitcoin.stackexchange.com/a/107962/101
 bolt11_pattern = r'lnbc[A-Za-z0-9]{190}'
+lnurl_pattern = r'lnurl[A-Za-z0-9]{100}'
 
 def event_flow_control(req: dict, action = 'accept', message: str = None):
     response = {
@@ -71,8 +73,14 @@ for line in sys.stdin:
         if re.search(url_pattern, event_content, re.IGNORECASE):
             event_flow_control(req, 'reject', 'Spam filter: URLs are not allowed in notes on this free relay.')
             strfry_metrics.spam_events['url'] += 1
+        elif re.search(vmess_pattern, event_content, re.IGNORECASE):
+            event_flow_control(req, 'reject', 'Spam filter: URLs are not allowed in notes on this free relay.')
+            strfry_metrics.spam_events['url'] += 1
         elif re.search(bolt11_pattern, event_content, re.IGNORECASE):
             event_flow_control(req, 'reject', 'Spam filter: Bolt11 invoices are not allowed in notes on this free relay.')
+            strfry_metrics.spam_events['bolt11'] += 1
+        elif re.search(lnurl_pattern, event_content, re.IGNORECASE):
+            event_flow_control(req, 'reject', 'Spam filter: LNURLs are not allowed in notes on this free relay.')
             strfry_metrics.spam_events['bolt11'] += 1
         else:
             event_flow_control(req, 'accept')

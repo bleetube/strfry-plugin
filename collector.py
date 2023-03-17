@@ -17,11 +17,13 @@ class strfryCollector(object):
         # See: https://www.robustperception.io/cardinality-is-key/
         self.event_kinds = {
             1:0, # Short Text Note
-            7:0, # Reaction (nip-25)
+            5:0, # Deletion (nip-9)
             6:0, # Reposts (nip-18)
-            1984:0, # Reporting (nip-56)
+            7:0, # Reaction (nip-25)
             9735:0, # Zap (nip-57)
-            30000:0, # Replaceable (nip-33)
+            10000:0, # Replaceable (nip-16)
+            20000:0, # Ephemeral (nip-16)
+            30000:0, # Parameterized Replaceable (nip-33)
             'other':0,
         }
         self.spam_events = {'url':0, 'bolt11':0, 'chat':0}

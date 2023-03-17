@@ -1,9 +1,11 @@
 #!/opt/strfry/.venv/bin/python
 
 import json, logging, re, sys
-from os import getcwd
+from os import getcwd, path, rename, remove
 import collector
 from pprint import pprint
+import datetime, tarfile
+
 
 log_file = f"{getcwd()}/plugin.log"
 
@@ -23,6 +25,40 @@ vmess_pattern = r'vmess://'
 # https://bitcoin.stackexchange.com/a/107962/101
 bolt11_pattern = r'lnbc[A-Za-z0-9]{190}'
 lnurl_pattern = r'lnurl[A-Za-z0-9]{100}'
+
+
+def rotate_log_file(log_path):
+    """
+    Rotates the given log file if it exceeds 100Mb and creates a tar.xz of the old log
+    without overwriting older log files.
+
+    Args:
+        log_path (str): The path to the log file to rotate.
+
+    Returns:
+        None.
+    """
+
+    # Get the size of the log file
+    log_size = path.getsize(log_path)
+
+    # Check if the log file exceeds 100Mb
+    if log_size > 100000000:
+
+        # Create a filename for the rotated log file
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        rotated_log_filename = f"{log_path}.{timestamp}"
+
+        # Rename the log file to the rotated log filename
+        rename(log_path, rotated_log_filename)
+
+        # Create a tar.xz archive of the rotated log file
+        with tarfile.open(f"{rotated_log_filename}.tar.xz", "w:xz") as tar:
+            tar.add(rotated_log_filename)
+
+        # Delete the rotated log file
+        remove(rotated_log_filename)
+
 
 def event_flow_control(req: dict, action = 'accept', message: str = None):
     response = {
@@ -115,3 +151,5 @@ for line in sys.stdin:
 #       other_events = dict(sorted(other_event_kinds.items(), key=lambda x: x[1], reverse=True))
 #       logging.info(other_events[:5])
         event_flow_control(req, 'accept')
+        rotate_log_file(log_file)
+

@@ -1,5 +1,8 @@
 # strfry-plugin
 
+TODO: replicate ideas from https://gitlab.com/soapbox-pub/strfry-policies/-/tree/develop/src/policies
+* rate limit
+
 This is a spam filter that I am trying out. It is intended for use on a free relay where the spam is very, very bad.
 
 I also slapped on some metric collection for a monitoring stack like Prometheus.

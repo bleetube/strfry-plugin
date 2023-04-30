@@ -125,6 +125,10 @@ for line in sys.stdin:
     elif event_kind == 4 or event_kind == 42:
         event_flow_control(req, 'reject', 'Spam filter: DMs and chat groups are not allowed on this free relay.')
         strfry_metrics.spam_events['chat'] += 1
+    # Block file storage
+    elif event_kind == 1064 or event_kind == 30064:
+        event_flow_control(req, 'reject', 'File storage is prohibited on this free relay.')
+#       strfry_metrics.spam_events['files'] += 1
     # Accept all other events.
     else:
         # Count metrics for accepted events.

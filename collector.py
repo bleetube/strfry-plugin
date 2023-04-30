@@ -26,7 +26,7 @@ class strfryCollector(object):
             30000:0, # Parameterized Replaceable (nip-33)
             'other':0,
         }
-        self.spam_events = {'url':0, 'bolt11':0, 'chat':0}
+        self.spam_events = {'url':0, 'bolt11':0, 'chat':0, 'files':0}
 
     @REQUEST_TIME.time()
     def collect(self):
@@ -34,6 +34,7 @@ class strfryCollector(object):
             yield GaugeMetricFamily('rejected_note_url_spam', 'Rejected event kind 1 notes with a url', value=self.spam_events['url'])
             yield GaugeMetricFamily('rejected_note_bolt11_spam', 'Rejected event kind 1 notes with a bolt11 invoice', value=self.spam_events['bolt11'])
             yield GaugeMetricFamily('rejected_chat_spam', 'Rejected event kind 4 chats and direct messages', value=self.spam_events['chat'])
+            yield GaugeMetricFamily('rejected_file_sharing', 'Rejected event containing data for the intent of file sharing', value=self.spam_events['files'])
 #           # Labels and values are mutually exclusive.
             g = GaugeMetricFamily( "events", "Count of events by kind", labels=[ "kind" ])
             for event in self.event_kinds.keys():

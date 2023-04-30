@@ -15,6 +15,8 @@ I also slapped on some metric collection for a monitoring stack like Prometheus.
 
 * Bolt11 lightning invoices in event kind 1 notes are rejected.
 
+* NIP-95 (file hosting on relays) is rejected.
+
 ## usage
 
 See the strfry [plugin documentation](https://github.com/hoytech/strfry/blob/master/docs/plugins.md).

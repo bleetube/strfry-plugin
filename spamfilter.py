@@ -128,7 +128,7 @@ for line in sys.stdin:
     # Block file storage
     elif event_kind == 1064 or event_kind == 30064:
         event_flow_control(req, 'reject', 'File storage is prohibited on this free relay.')
-#       strfry_metrics.spam_events['files'] += 1
+        strfry_metrics.spam_events['files'] += 1
     # Accept all other events.
     else:
         # Count metrics for accepted events.

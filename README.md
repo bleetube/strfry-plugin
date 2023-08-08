@@ -1,31 +1,23 @@
 # strfry-plugin
 
-TODO: replicate ideas from https://gitlab.com/soapbox-pub/strfry-policies/-/tree/develop/src/policies
-* rate limit
+This is a basic Python plugin for strfry. It provides an exporter for Promtheus openmetrics, and a brutally simple spam filter.
 
-This is a spam filter that I am trying out. It is intended for use on a free relay where the spam is very, very bad.
-
-I also slapped on some metric collection for a monitoring stack like Prometheus.
+Alternatives:
+* [strfry-policies](https://gitlab.com/soapbox-pub/strfry-policies/-/tree/develop/src/policies) (typescript)
+* [spamblaster](https://github.com/relaytools/spamblaster) (go)
 
 ## Spam policies
 
 * All event kind 4 direct messages are rejected.
-
 * URLs are not permitted in event kind 1 notes.
-
 * Bolt11 lightning invoices in event kind 1 notes are rejected.
-
 * NIP-95 (file hosting on relays) is rejected.
 
 ## usage
 
 See the strfry [plugin documentation](https://github.com/hoytech/strfry/blob/master/docs/plugins.md).
 
-To start, you can try out the `spamfilter_basic.py` script. More advanced users may be interested in the devops metrics described below.
-
-## optional metrics
-
-`spamfilter.py`
+## metrics
 
 ```bash
 pip install --upgrade pip

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bleetube-strfry-plugin"
-version = "0.0.2"
+version = "0.0.3"
 description = "Strfry plugin for spam filtering and metrics"
 readme = "README.md"
 authors = [{ name = "blee", email = "blee@bitcoiner.social" }]
